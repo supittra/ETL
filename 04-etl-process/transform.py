@@ -4,7 +4,7 @@ def transform_data(raw_data):
     """ทำความสะอาดข้อมูล รวมตาราง และคำนวณ Measures สำหรับ Data Warehouse"""
     print("กำลังเข้าสู่กระบวนการ Transform...")
 
-    # ดึง Dataframe ออกมาและลบคอลัมน์ last_update ที่ซ้ำซ้อนออกก่อน Merge
+    # ลบคอลัมน์ last_update ที่ซ้ำกันในทุกตารางออกก่อน Merge
     cust = raw_data['customer'].drop(columns=['last_update'], errors='ignore')
     addr = raw_data['address'].drop(columns=['last_update'], errors='ignore')
     city = raw_data['city'].drop(columns=['last_update'], errors='ignore')
