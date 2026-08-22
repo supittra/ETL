@@ -1,24 +1,23 @@
+import os
 import pandas as pd
-from sqlalchemy import create_engine
-from config import SOURCE_URI
+from config import DATA_DIR
 
 def extract_raw_data():
-    """สกัดข้อมูลดิบจากฐานข้อมูล OLTP ต้นทาง"""
-    engine = create_engine(SOURCE_URI)
+    """สกัดข้อมูลดิบจากไฟล์ CSV ในโฟลเดอร์ data"""
+    print("กำลังสกัดข้อมูลจากไฟล์ CSV...")
     
-    print("กำลังสกัดข้อมูลจาก OLTP Source...")
     tables = {
-        'film': pd.read_sql("SELECT * FROM film", engine),
-        'category': pd.read_sql("SELECT * FROM category", engine),
-        'film_category': pd.read_sql("SELECT * FROM film_category", engine),
-        'customer': pd.read_sql("SELECT * FROM customer", engine),
-        'address': pd.read_sql("SELECT * FROM address", engine),
-        'city': pd.read_sql("SELECT * FROM city", engine),
-        'country': pd.read_sql("SELECT * FROM country", engine),
-        'rental': pd.read_sql("SELECT * FROM rental", engine),
-        'payment': pd.read_sql("SELECT * FROM payment", engine),
-        'store': pd.read_sql("SELECT * FROM store", engine),
-        'staff': pd.read_sql("SELECT * FROM staff", engine)
+        'film': pd.read_csv(os.path.join(DATA_DIR, 'film.csv')),
+        'category': pd.read_csv(os.path.join(DATA_DIR, 'category.csv')),
+        'film_category': pd.read_csv(os.path.join(DATA_DIR, 'film_category.csv')),
+        'customer': pd.read_csv(os.path.join(DATA_DIR, 'customer.csv')),
+        'address': pd.read_csv(os.path.join(DATA_DIR, 'address.csv')),
+        'city': pd.read_csv(os.path.join(DATA_DIR, 'city.csv')),
+        'country': pd.read_csv(os.path.join(DATA_DIR, 'country.csv')),
+        'rental': pd.read_csv(os.path.join(DATA_DIR, 'rental.csv')),
+        'payment': pd.read_csv(os.path.join(DATA_DIR, 'payment.csv')),
+        'store': pd.read_csv(os.path.join(DATA_DIR, 'store.csv')),
+        'staff': pd.read_csv(os.path.join(DATA_DIR, 'staff.csv'))
     }
-    print("สกัดข้อมูลเสร็จสิ้น!")
+    print("สกัดข้อมูลจาก CSV เสร็จสิ้น!")
     return tables
