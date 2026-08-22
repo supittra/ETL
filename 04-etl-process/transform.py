@@ -4,24 +4,34 @@ def transform_data(raw_data):
     """ทำความสะอาดข้อมูล รวมตาราง และคำนวณ Measures สำหรับ Data Warehouse"""
     print("กำลังเข้าสู่กระบวนการ Transform...")
 
-    # 1. Dim_Customer (แก้ปัญหา suffixes ซ้ำด้วยการระบุ suffixes ที่ชัดเจน)
-    dim_customer = raw_data['customer'].merge(raw_data['address'], on='address_id', suffixes=('_cust', '_addr')) \
-                                       .merge(raw_data['city'], on='city_id', suffixes=('', '_city')) \
-                                       .merge(raw_data['country'], on='country_id', suffixes=('', '_country'))
+    # ดึง Dataframe ออกมาและลบคอลัมน์ last_update ที่ซ้ำซ้อนออกก่อน Merge
+    cust = raw_data['customer'].drop(columns=['last_update'], errors='ignore')
+    addr = raw_data['address'].drop(columns=['last_update'], errors='ignore')
+    city = raw_data['city'].drop(columns=['last_update'], errors='ignore')
+    ctry = raw_data['country'].drop(columns=['last_update'], errors='ignore')
+
+    # 1. Dim_Customer
+    dim_customer = cust.merge(addr, on='address_id') \
+                       .merge(city, on='city_id') \
+                       .merge(ctry, on='country_id')
     
     dim_customer = dim_customer[['customer_id', 'first_name', 'last_name', 'email', 
                                  'active', 'city', 'country']]
-    dim_customer['customer_key'] = range(1, len(dim_customer) + 1) # Surrogate Key
+    dim_customer['customer_key'] = range(1, len(dim_customer) + 1)
 
-    # 2. Dim_Film (Film + Category)
-    film_cat = raw_data['film_category'].merge(raw_data['category'], on='category_id', suffixes=('_filmcat', '_cat'))
-    dim_film = raw_data['film'].merge(film_cat, on='film_id', how='left')
+    # 2. Dim_Film
+    film = raw_data['film'].drop(columns=['last_update'], errors='ignore')
+    film_cat = raw_data['film_category'].drop(columns=['last_update'], errors='ignore')
+    cat = raw_data['category'].drop(columns=['last_update'], errors='ignore')
+
+    film_cat_all = film_cat.merge(cat, on='category_id')
+    dim_film = film.merge(film_cat_all, on='film_id', how='left')
     dim_film = dim_film[['film_id', 'title', 'release_year', 'rental_duration', 
                          'rental_rate', 'length', 'rating', 'name']]
     dim_film.rename(columns={'name': 'category_name'}, inplace=True)
     dim_film['film_key'] = range(1, len(dim_film) + 1)
 
-    # 3. Dim_Date (แตกมิติเวลาจาก Payment)
+    # 3. Dim_Date
     payments = raw_data['payment'].copy()
     payments['payment_date'] = pd.to_datetime(payments['payment_date'])
     
@@ -36,13 +46,11 @@ def transform_data(raw_data):
     dim_date['day_of_week'] = dim_date['full_date'].dt.day_name()
 
     # 4. Fact_Sales
-    fact_sales = payments.merge(raw_data['rental'], on='rental_id', suffixes=('_pay', '_rent'))
+    rental = raw_data['rental'].drop(columns=['last_update'], errors='ignore')
+    fact_sales = payments.merge(rental, on='rental_id', suffixes=('_pay', '_rent'))
     fact_sales['date_key'] = pd.to_datetime(fact_sales['payment_date']).dt.strftime('%Y%m%d').astype(int)
     
-    # Map Surrogate Keys
     fact_sales = fact_sales.merge(dim_customer[['customer_id', 'customer_key']], on='customer_id')
-    
-    # Measures
     fact_sales['rental_count'] = 1
     fact_sales.rename(columns={'amount': 'rental_amount'}, inplace=True)
     
