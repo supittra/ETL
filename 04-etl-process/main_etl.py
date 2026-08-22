@@ -1,3 +1,9 @@
+import sys
+import os
+
+# เพิ่ม Path ของโฟลเดอร์ 04-etl-process เพื่อให้รันข้ามโฟลเดอร์ได้ไม่มีปัญหา
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from extract import extract_raw_data
 from transform import transform_data
 from load import load_to_dw
